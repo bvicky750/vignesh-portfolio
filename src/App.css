@@ -1,0 +1,218 @@
+/* src/App.css - Dark Forest Green + Aqua Theme */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+  --color-dark: #1A1A1D;     /* Deep Charcoal */
+  --color-light: #EAEAEA;    /* Light Text */
+  --color-primary: #4CAF50;  /* Forest Green */
+  --color-secondary: #00BCD4;/* Aqua Blue Accent (NEW) */
+  --color-bg-light: #2C3A47; /* Slightly Lighter BG for Cards */
+  --color-text: #BDBDBD;
+}
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--color-dark);
+  color: var(--color-text);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-primary);
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--color-secondary);
+}
+
+.section {
+  padding: 80px 5%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 3rem;
+  margin-bottom: 50px;
+  color: var(--color-light);
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5); /* Primary glow */
+  animation: fadeIn 1s ease-out;
+}
+
+/* Updated Button Style */
+.styled-button {
+  display: inline-block;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
+  transition: all 0.4s ease-in-out;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.styled-button:hover {
+  color: var(--color-dark);
+  background-color: var(--color-primary);
+  box-shadow: 0 0 15px var(--color-primary), 0 0 30px var(--color-secondary);
+  transform: translateY(-3px);
+}
+
+/* Hero Section */
+.profile-photo {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 5px solid var(--color-secondary); /* Updated */
+  box-shadow: 0 0 10px var(--color-secondary); /* Updated */
+  margin-bottom: 30px;
+  object-fit: cover;
+  animation: pulse-border 2s infinite alternate;
+}
+
+@keyframes pulse-border {
+    from { box-shadow: 0 0 10px var(--color-secondary); } /* Updated */
+    to { box-shadow: 0 0 20px var(--color-primary); }
+}
+
+/* Card and Skills Styling */
+.skill-item, .project-card {
+  background-color: var(--color-bg-light);
+  border: 1px solid var(--color-bg-light);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  border-radius: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.skill-item {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.skill-item:hover {
+  border-color: var(--color-secondary); /* Updated */
+  box-shadow: 0 0 10px var(--color-secondary); /* Updated */
+  transform: translateY(-5px) scale(1.05);
+}
+
+.project-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 15px var(--color-primary);
+  transform: translateY(-10px) rotateZ(1deg);
+}
+
+.project-card h3 {
+  color: var(--color-primary);
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+}
+.project-links {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+}
+.project-links .styled-button {
+  padding: 8px 15px;
+  font-size: 0.9rem;
+}
+.projects-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    width: 100%;
+}
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    width: 100%;
+}
+
+/* Header Styling for Multi-Page */
+.header {
+    background-color: var(--color-dark);
+    padding: 20px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header a {
+    color: var(--color-text);
+    padding: 5px 10px;
+    font-weight: 600;
+}
+
+.header a:hover {
+    color: var(--color-primary);
+}
+
+.header .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-light);
+    text-shadow: 0 0 3px var(--color-secondary); /* Updated */
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Footer Styling */
+.footer {
+  background-color: #111111;
+  border-top: 1px solid rgba(76, 175, 80, 0.1);
+  padding: 30px 5%;
+  text-align: center;
+}
+.social-links a {
+  margin: 0 15px;
+  font-size: 1.8rem;
+  color: var(--color-text);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+.social-links a:hover {
+  color: var(--color-secondary); /* Updated */
+  text-shadow: 0 0 5px var(--color-secondary); /* Updated */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+  }
+  .header nav {
+    margin-top: 10px;
+  }
+  .section-title {
+    font-size: 2.5rem;
+  }
+}
