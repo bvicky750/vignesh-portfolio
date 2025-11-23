@@ -1,14 +1,8 @@
-# Personal Portfolio Website - Shashank Raj
+# Personal Portfolio Website 
 
 A clean, modern, and highly performant personal portfolio website built with **React**, **Vite**, **Tailwind CSS**, and **Framer Motion**. This template is designed to be easily customizable and showcases a professional, animation-rich user interface.
 
 It features a multi-page architecture with dedicated sections for an introduction, skills, education, projects, competitive programming achievements, and a functional contact form.
-
----
-
-## 🚀 Live Demo
-
-[**View Portfolio on Vercel**](https://shashank-raj-portfolio.vercel.app)
 
 ---
 
@@ -98,4 +92,5 @@ src/
 
 ## ✒️ Author
 
-**Shashank Raj**
+
+**Vignesh B**
