@@ -1,0 +1,119 @@
+/* Add this to src/index.css or src/App.css */
+
+/* base vars with fallbacks */
+.animated-bg {
+  --bg-base: hsl(222, 47%, 11%);
+  --grid-line: hsla(222,47%,13%,1);
+  --radial-1: rgba(22,40,70,0.85);
+  --radial-2: rgba(60,30,70,0.45);
+  --grid-opacity: 0.85;
+
+  /* dynamic positions */
+  --drift-x: 0px;
+  --drift-y: 0px;
+  --mx: 0px;
+  --my: 0px;
+}
+
+/* layer container uses transform for both drift and parallax */
+.animated-bg {
+  /* make sure it sits behind everything */
+  background-color: var(--bg-base);
+  background-repeat: repeat;
+  transition: background-color 450ms ease;
+}
+
+/* We'll make three pseudo layers using gradients:
+   - large slow-moving radial glow layer (subtle)
+   - grid layer (pattern)
+   - faint overlay noise via linear-gradients for depth
+*/
+.animated-bg::before,
+.animated-bg::after,
+.animated-bg .grid-layer {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Use ::before for radial glows */
+.animated-bg::before {
+  background-image:
+    radial-gradient(ellipse at 8% 12%, var(--radial-1) 0px, transparent 220px),
+    radial-gradient(ellipse at 92% 86%, var(--radial-2) 0px, transparent 280px);
+  opacity: 0.95;
+  mix-blend-mode: screen;
+  transform: translate(calc(var(--drift-x) * 0.3), calc(var(--drift-y) * 0.3));
+  transition: opacity 400ms linear, transform 400ms linear;
+  will-change: transform;
+}
+
+/* grid pattern as a separate layer so we can move it differently */
+.animated-bg::after {
+  /* create a grid using two linear-gradients */
+  background-image:
+    linear-gradient(var(--grid-line) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--grid-line) 1.5px, transparent 1.5px);
+  background-size: 40px 40px;
+  opacity: calc(var(--grid-opacity));
+  transform:
+    translate(calc(var(--drift-x) + var(--mx)), calc(var(--drift-y) + var(--my)))
+    scale(1);
+  filter: drop-shadow(0 0 6px rgba(0,0,0,0.12));
+  transition: transform 300ms linear, opacity 400ms linear;
+  will-change: transform;
+}
+
+/* subtle diagonal lines overlay for depth */
+.animated-bg .grid-layer {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-size: 160px 160px, 160px 160px;
+  opacity: 0.15;
+  transform: translate(calc(var(--drift-x) * 0.5), calc(var(--drift-y) * 0.5));
+  mix-blend-mode: overlay;
+}
+
+/* subtle vignette to focus center */
+.animated-bg {
+  box-shadow: inset 0 120px 200px rgba(0,0,0,0.18);
+}
+
+/* Light theme tweaks using .light class on html root (you already set this) */
+html.light .animated-bg {
+  --bg-base: hsl(210, 40%, 98%);
+  --grid-line: hsl(210, 40%, 96%);
+  --radial-1: rgba(240,240,250,0.5);
+  --radial-2: rgba(250,250,255,0.35);
+  --grid-opacity: 0.6;
+  box-shadow: inset 0 120px 160px rgba(255,255,255,0.04);
+}
+
+/* Reduce motion: stop drift & parallax */
+@media (prefers-reduced-motion: reduce) {
+  .animated-bg::before,
+  .animated-bg::after,
+  .animated-bg .grid-layer {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Make sure the pseudo elements are positioned */
+.animated-bg::before,
+.animated-bg::after,
+.animated-bg .grid-layer {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+/* Ensure .animated-bg spans the full page and stacks correctly */
+.animated-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -50; /* same as you used earlier */
+}
