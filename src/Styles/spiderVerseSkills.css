@@ -1,0 +1,94 @@
+/* === SPIDER-VERSE GLITCH SKILL CARDS === */
+
+.glitch-card {
+  position: relative;
+  padding: 24px;
+  border-radius: 22px;
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0 0px rgba(255, 0, 128, 0.3);
+}
+
+.glitch-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 0 18px rgba(255, 0, 128, 0.5), 0 0 22px rgba(0, 200, 255, 0.4);
+}
+
+/* Neon double-border effect */
+.glitch-card::before,
+.glitch-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.glitch-card::before {
+  border: 2px solid rgba(255, 0, 128, 0.4);
+  transform: translate(3px, 3px);
+}
+
+.glitch-card::after {
+  border: 2px solid rgba(0, 200, 255, 0.35);
+  transform: translate(-3px, -3px);
+}
+
+/* Halftone film overlay */
+.halftone-overlay {
+  position: absolute;
+  inset: 0;
+  background: url("https://i.imgur.com/8bXjv0S.png");
+  opacity: 0.18;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+/* HEADER */
+.glitch-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-wrapper {
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.glitch-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* Tags */
+.skill-tag {
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  color: #eee;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.skill-tag:hover {
+  transform: scale(1.12);
+  background: rgba(255, 0, 128, 0.35);
+  border-color: rgba(255, 0, 128, 0.6);
+}
+
+/* Grid inside card */
+.glitch-tags-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
