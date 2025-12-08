@@ -1,185 +1,198 @@
-import React, { useState, memo } from "react";
-import { Mail, Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import React, { useState, useRef, memo } from "react";
+import { Mail, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 
-// --- Animation Variants (The "Staggered Entrance" Pattern) ---
-const sectionContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15 },
-  },
-};
+import PageTitle from "../components/PageTitle";
+import PageTransition from "../components/PageTransition";
+import PagePopup from "../components/PagePopup/PagePopup";
+import { popupConfig } from "../components/PagePopup/popupConfig";
 
-const formContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-};
+import emailjs from "@emailjs/browser";
+import neonPlane from "../assets/neon-plane.svg";
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-};
+// 🔊 preload sounds (no delay)
+const successSound = new Audio("/sounds/success.mp3");
+const errorSound = new Audio("/sounds/error.mp3");
+successSound.preload = "auto";
+errorSound.preload = "auto";
 
+const EMAILJS_SERVICE_ID = "service_2hbeidi";
+const EMAILJS_TEMPLATE_ID = "template_olznacj";
+const EMAILJS_PUBLIC_KEY = "N8UuYpR-uFvn4sA5Y";
 
-// --- Status Message Component (Unchanged) ---
-const StatusMessage = ({ status, message }) => {
-  if (status === "idle") return null;
+function ContactComponent() {
+  const [formState, setFormState] = useState({ status: "idle", message: "" });
+  const [planeActive, setPlaneActive] = useState(false);
+  const [planeStart, setPlaneStart] = useState({ left: 0, top: 0 });
+  const [planeKey, setPlaneKey] = useState(0);
 
-  const variants = {
-    hidden: { opacity: 0, y: -10, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1 },
+  const formRef = useRef(null);
+  const btnRef = useRef(null);
+
+  // Validation
+  const validate = (formEl) => {
+    const name = formEl.from_name.value.trim();
+    const email = formEl.from_email.value.trim();
+    const message = formEl.message.value.trim();
+    if (!name || !email || !message) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  return (
-    <motion.div
-      layout
-      variants={variants}
-      initial="hidden"
-      animate="visible"
-      exit="hidden"
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${
-        status === "success"
-          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
-          : status === "error"
-          ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
-          : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-      }`}
-    >
-      {status === "loading" && <Loader2 className="w-4 h-4 animate-spin" />}
-      {status === "success" && <CheckCircle2 className="w-4 h-4" />}
-      {status === "error" && <AlertCircle className="w-4 h-4" />}
-      {message}
-    </motion.div>
-  );
-};
+  // Plane keyframes
+  const computeKeyframes = () => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
 
-
-// --- Main Contact Component ---
-function ContactComponent() {
-  const [formState, setFormState] = useState({
-    status: "idle",
-    message: "",
-  });
+    return {
+      x: [0, vw * 0.2, vw * 0.45, vw * 0.75, vw * 1.1],
+      y: [0, -vh * 0.05, -vh * 0.25, -vh * 0.50, -vh * 0.9],
+      rotate: [0, 12, 20, 30, 40],
+      opacity: [1, 1, 0.9, 0.5, 0],
+      scale: [1, 1.05, 1, 0.9, 0.7],
+      transition: { duration: 2.8, ease: "easeInOut" }
+    };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormState({ status: "loading", message: "Sending, please wait..." });
+    const formEl = formRef.current;
 
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+    if (!validate(formEl)) {
+      errorSound.currentTime = 0;
+      errorSound.play();
+
+      setFormState({ status: "error", message: "Fill all fields correctly." });
+      setTimeout(() => setFormState({ status: "idle", message: "" }), 2500);
+      return;
+    }
+
+    setFormState({ status: "loading", message: "" });
 
     try {
-      const response = await fetch("https://formspree.io/f/mldnaeeb", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+      const result = await emailjs.sendForm(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        formEl
+      );
 
-      if (response.ok) {
-        setFormState({
-          status: "success",
-          message: "Thank you! Your message has been sent successfully.",
+      if (result.status === 200) {
+        // success sound
+        successSound.currentTime = 0;
+        successSound.play();
+
+        // plane start position = button center
+        const btn = btnRef.current;
+        const rect = btn.getBoundingClientRect();
+        setPlaneStart({
+          left: rect.left + rect.width / 2 - 12,
+          top: rect.top + rect.height / 2 - 12 + window.scrollY
         });
-        e.target.reset();
-        setTimeout(() => setFormState({ status: "idle", message: "" }), 5000);
+
+        setPlaneKey((k) => k + 1);
+        requestAnimationFrame(() => setPlaneActive(true));
+        setTimeout(() => setPlaneActive(false), 2500);
+
+        setFormState({ status: "success", message: "Message sent!" });
+        formEl.reset();
+        setTimeout(() => setFormState({ status: "idle", message: "" }), 2500);
+
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send message");
+        throw new Error("Failed");
       }
-    } catch (error) {
-      setFormState({
-        status: "error",
-        message: "An error occurred. Please try again or email me directly.",
-      });
-      setTimeout(() => setFormState({ status: "idle", message: "" }), 5000);
+    } catch (err) {
+      errorSound.currentTime = 0;
+      errorSound.play();
+      setFormState({ status: "error", message: "Failed to send email." });
     }
   };
 
+  const keyframes = computeKeyframes();
+
   return (
-    <div className="w-full min-h-[80vh] flex flex-col items-center justify-center px-4 py-12">
-      <motion.div
-        variants={sectionContainerVariants}
-        initial="hidden"
-        animate="visible"
-        className="flex flex-col items-center gap-8 w-full max-w-xl"
-      >
-        <motion.div variants={itemVariants} className="flex flex-col items-center text-center">
-            <h2 className="text-3xl sm:text-5xl font-bold text-center text-foreground">
-              <span className="inline-flex items-center justify-center gap-3">
-                {/* THE FIX: Applying a responsive 'top' utility for perfect alignment */}
-                <Mail className="w-7 h-7 sm:w-9 sm:h-9 text-primary drop-shadow-sm flex-shrink-0 relative top-px sm:top-0.5" />
-                <span>Contact</span>
-              </span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
-                Whether you want to discuss a project, ask a question, or just say hello, I’d love to hear from you. Fill out the form below or email me directly. Let’s connect!
+    <PageTransition>
+      <PagePopup image={popupConfig.contact.image} text={popupConfig.contact.text} />
+
+      <div className="relative w-full min-h-[80vh] flex flex-col items-center justify-center px-4 py-12">
+
+        {/* ✈ Plane Animation */}
+        <AnimatePresence>
+          {planeActive && (
+            <motion.img
+              key={`plane-${planeKey}`}
+              src={neonPlane}
+              alt="plane"
+              style={{
+                position: "absolute",
+                left: planeStart.left,
+                top: planeStart.top,
+                zIndex: 99999,
+                width: "32px"
+              }}
+              animate={keyframes}
+              transition={keyframes.transition}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Contact Box */}
+        <div className="flex flex-col items-center gap-8 w-full max-w-xl">
+          <div className="text-center">
+            <div className="flex items-center gap-3 justify-center mb-3">
+              <Mail className="w-12 h-12 text-primary drop-shadow-lg" />
+              <PageTitle>Contact</PageTitle>
+            </div>
+            <p className="text-muted-foreground max-w-2xl text-lg">
+              Feel free to reach out anytime!
             </p>
-        </motion.div>
+          </div>
 
-        <motion.div variants={itemVariants}>
-          <a
-            href="mailto:shashankraj0124@gmail.com"
-            className="flex justify-center items-center gap-2 text-primary text-lg font-medium hover:underline transition-colors duration-200"
-            target="_blank"
-            rel="noopener noreferrer"
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            className="
+              w-full p-8 rounded-2xl shadow-xl
+              bg-gradient-to-br from-[#0a0a0a] via-[#111] to-[#000]
+              border-2 border-cyan-400/60
+              shadow-[0px_0px_20px_rgba(0,255,255,0.5)]
+              space-y-4
+            "
           >
-            <Mail className="w-5 h-5" />
-            shashankraj0124@gmail.com
-          </a>
-        </motion.div>
+            <Input name="from_name" placeholder="Your Name" required />
+            <Input name="from_email" placeholder="Your Email" required />
+            <Textarea name="message" placeholder="Your Message" rows={4} required />
 
-        <motion.form
-          onSubmit={handleSubmit}
-          variants={formContainerVariants}
-          className="w-full p-6 sm:p-8 bg-white/90 dark:bg-neutral-900/80 border border-border/40 dark:border-border/60 rounded-2xl shadow space-y-4"
-        >
-          <AnimatePresence>
-            <motion.div key={formState.status} variants={itemVariants} layout>
-              <StatusMessage status={formState.status} message={formState.message} />
+            <motion.div
+              animate={
+                formState.status === "error"
+                  ? { x: [-8, 8, -8, 8, 0] } // shake effect
+                  : {}
+              }
+              transition={{ duration: 0.35 }}
+            >
+              <Button
+                ref={btnRef}
+                type="submit"
+                className={`w-full py-3 text-lg font-semibold flex items-center justify-center gap-2 ${
+                  formState.status === "error"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-primary hover:bg-primary/80"
+                }`}
+              >
+                {formState.status === "loading" ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  "Send Message"
+                )}
+              </Button>
             </motion.div>
-          </AnimatePresence>
-          
-          <motion.div variants={itemVariants}>
-            <Input type="text" name="name" placeholder="Your Name" required disabled={formState.status === "loading"} className="text-foreground disabled:opacity-50" />
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <Input type="email" name="email" placeholder="Your Email" required disabled={formState.status === "loading"} className="text-foreground disabled:opacity-50" />
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <Textarea rows={4} name="message" placeholder="Your Message" required disabled={formState.status === "loading"} className="resize-y text-foreground disabled:opacity-50" />
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <Button type="submit" disabled={formState.status === "loading"} className="w-full text-lg font-semibold py-3 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-              {formState.status === "loading" ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  Send Message <Send className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </motion.div>
-        </motion.form>
-      </motion.div>
-    </div>
+          </form>
+        </div>
+      </div>
+    </PageTransition>
   );
 }
 

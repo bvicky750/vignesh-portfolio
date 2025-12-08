@@ -1,7 +1,13 @@
-import React, { memo, useCallback, useMemo } from "react";
+// Header.jsx (Spider-Verse Title + Glitch Nav Update)
+
+import React, { memo } from "react";
 import { motion } from "framer-motion";
-import { Sun, Moon, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import MusicButton from "./MusicButton";
+
+import useSound from "../hooks/useSound";
+import clickSound from "../assets/click.mp3";
 
 const headerVariants = {
   hidden: { y: -100, opacity: 0 },
@@ -21,75 +27,72 @@ const navLinks = [
   { to: "/skills", label: "Skills" },
   { to: "/academics", label: "Education" },
   { to: "/projects", label: "Projects" },
-  { to: "/cp", label: "CP" },
   { to: "/contact", label: "Contact" },
 ];
 
-const Header = memo(({ toggleTheme, currentTheme, onHamburgerClick }) => {
+const Header = memo(({ onHamburgerClick }) => {
   const location = useLocation();
-
-  const handleThemeToggle = useCallback((e) => {
-    toggleTheme();
-    e.currentTarget.blur();
-  }, [toggleTheme]);
-
-  const ThemeIcon = useMemo(() => (currentTheme === "light" ? Moon : Sun), [currentTheme]);
-  const themeAriaLabel = useMemo(() => `Switch to ${currentTheme === "light" ? "dark" : "light"} mode`, [currentTheme]);
+  const playClick = useSound(clickSound); // CLICK SOUND 🎵
 
   return (
     <motion.header
       variants={headerVariants}
       initial="hidden"
       animate="visible"
-      className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 sm:px-8 py-4 bg-muted/70 dark:bg-muted/50 backdrop-blur-md shadow-md border-b border-border/40"
-      style={{ willChange: "transform", transform: "translate3d(0, 0, 0)" }}
+      className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 sm:px-8 py-4 
+        bg-black/20 backdrop-blur-md shadow-md border-b border-white/10"
     >
-      {/* THE FIX: Changed Link to point to "/" */}
-      <Link to="/" className="text-2xl sm:text-3xl font-extrabold text-primary tracking-wide select-none hover:opacity-80 transition">
-        Shashank Raj
+      {/* SPIDER-VERSE TITLE */}
+      <Link
+        to="/"
+        onClick={playClick}
+        className="spider-text no-underline text-2xl sm:text-3xl font-extrabold tracking-wide select-none transition relative"
+      >
+        Vignesh B
       </Link>
 
-      <nav className="hidden min-[935px]:flex gap-2 sm:gap-4 md:gap-6 items-center">
-        {navLinks.map(link => {
-          // THE FIX: Check for both '/' and '/about' to highlight the "About" link
-          const isActive = location.pathname === link.to || (link.to === '/about' && location.pathname === '/');
+      {/* Desktop Navigation */}
+      <nav className="hidden min-[935px]:flex gap-3 sm:gap-5 md:gap-7 items-center">
+        {navLinks.map(({ to, label }) => {
+          const isActive =
+            location.pathname === to ||
+            (to === "/about" && location.pathname === "/");
+
           return (
             <Link
-              key={link.to}
-              to={link.to}
-              className={`px-3 py-1.5 rounded-md text-base font-medium transition-colors duration-150
+              key={to}
+              to={to}
+              onClick={playClick} // SOUND HERE 🎶
+              data-text={label}
+              className={`spider-nav px-4 py-2 rounded-lg text-base font-medium relative 
+                transition-all duration-200
                 ${isActive
-                  ? "text-primary bg-primary/10 dark:bg-primary/20"
-                  : "text-muted-foreground hover:text-primary hover:bg-primary/5"}`}
+                  ? "text-white bg-white/10"
+                  : "text-neutral-300 hover:text-white hover:bg-white/5"
+                }
+              `}
             >
-              {link.label}
+              {label}
             </Link>
           );
         })}
-        <button
-          onClick={handleThemeToggle}
-          type="button"
-          className="ml-2 p-2 rounded-full text-muted-foreground hover:text-primary transition-transform duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 will-change-transform"
-          aria-label={themeAriaLabel}
-        >
-          <ThemeIcon className="w-6 h-6" />
-        </button>
+
+        <MusicButton />
       </nav>
 
+      {/* Mobile Navigation */}
       <div className="flex max-[934px]:flex hidden items-center gap-2">
-        <button
-          onClick={handleThemeToggle}
-          type="button"
-          className="p-2 rounded-full text-muted-foreground hover:text-primary transition-transform duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 will-change-transform"
-          aria-label={themeAriaLabel}
-        >
-          <ThemeIcon className="w-6 h-6" />
-        </button>
+        <MusicButton />
+
+        {/* Mobile Menu Button */}
         <button
           type="button"
-          onClick={onHamburgerClick}
+          onClick={(e) => {
+            playClick();
+            onHamburgerClick(e);
+          }}
           aria-label="Open menu"
-          className="ml-1 flex items-center justify-center w-14 h-14 rounded-full hover:bg-primary/10 active:scale-95 transition"
+          className="ml-1 flex items-center justify-center w-14 h-14 rounded-full hover:bg-white/10 active:scale-95 transition"
         >
           <Menu className="w-9 h-9 text-primary" />
         </button>
